@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - Stok</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; min-width: 70px; text-align: center; display: inline-block; }
+        .status-adequate { background-color: #d1f7c4; color: #2e7d32; }
+        .status-critical { background-color: #ffecb3; color: #ff8f00; }
+        .status-out { background-color: #ffd1d1; color: #c62828; }
+
+        .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media (max-width: 992px) { .charts-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item nav-item--active">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item">Satışlar</a>
+            <a href="raporlar.html" class="nav-item">Raporlar</a>
+            <a href="senaryolar.html" class="nav-item">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Stok &amp; Ürünler</h1>
+                <p class="muted">Envanter yönetimi ve kârlılık analizleri</p>
+            </div>
+            <div class="header-actions"><div class="avatar">MM</div></div>
+        </header>
+
+        <section class="kpi-row">
+            <div class="kpi-card kpi-card--blue">
+                <div class="kpi-title">Toplam Ürün</div>
+                <div class="kpi-value" id="stokToplamUrun">-</div>
+            </div>
+            <div class="kpi-card kpi-card--red">
+                <div class="kpi-title">Kritik Stok</div>
+                <div class="kpi-value" id="stokKritikStok">-</div>
+            </div>
+            <div class="kpi-card kpi-card--yellow">
+                <div class="kpi-title">Düşük Kâr Marjlı</div>
+                <div class="kpi-value" id="stokDusukKar">-</div>
+                <div class="kpi-sub">Riskli ürün sayısı</div>
+            </div>
+        </section>
+
+        <section class="charts-row">
+            <div class="panel">
+                <div class="panel__header"><div class="panel__title">Fiyat ve Stok Dağılımı</div>  </div>
+                <div class="panel__body" style="position: relative;">
+                    <div style="height: 240px; position: relative; width: 100%;">
+                        <canvas id="fiyatStokAnaliz"></canvas>
+                    </div>
+                    <div id="stokOneriKutusu" class="alert alert--medium" style="margin-top: 8px; padding: 6px 10px; font-size: 11px; min-height: auto; display: none;">
+                        <div class="alert__icon" style="font-size: 14px; margin-right: 8px;"><span></span></div>
+                        <div class="alert__content">
+                            <div class="alert__title" style="margin-bottom: 2px; font-size: 11px;">Sermaye Verimliliği Önerisi</div>
+                            <div class="alert__meta" id="stokOneriMetni" style="font-size: 11px; line-height: 1.2;">Analiz ediliyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel__header"><div class="panel__title">Kategori Dağılımı</div></div>
+                <div class="panel__body" style="height: 300px; position: relative;">
+                    <canvas id="kategoriDagilimGrafik"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel__header">
+                <div class="panel__title">Genel Stok Listesi</div>
+            </div>
+            <div class="panel__body">
+                <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ürün</th>
+                                <th>Kategori</th>
+                                <th style="text-align: right;">Stok</th>
+                                <th style="text-align: center;">Durum</th>
+                                <th style="text-align: right;">Fiyat</th>
+                                <th style="text-align: center;">Tedarik Süresi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stokTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" style="margin-top: 20px;">
+            <div class="panel__header" style="display: flex; justify-content: space-between; align-items: center; min-height: 54px;">
+                <div class="panel__title" style="margin: 0;">Düşük Kâr Marjlı Ürün Analizi</div>
+                
+                <div id="karOneriKutusu" class="alert" style="display: none; margin: 0; padding: 4px 10px; font-size: 11px; border-radius: 6px; align-items: center;">
+                    <span style="font-size: 14px; margin-right: 6px;"></span>
+                    <span id="karOneriMetni" style="line-height: 1.2; font-weight: 600;">Analiz ediliyor...</span>
+                </div>
+            </div>
+            <div class="panel__body">
+
+                <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                    <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;"> Maliyet vs. Kâr Dağılımı (Kırmızı: Maliyet, Yeşil: Kâr)</div>
+                    <div style="height: 180px; position: relative; width: 100%;">
+                        <canvas id="dusukKarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Ürün</th>
+                            <th style="text-align: right;">Maliyet</th>
+                            <th style="text-align: right;">Satış</th>
+                            <th style="text-align: center;">Kâr (%)</th>
+                        </tr>
+                        </thead>
+                        <tbody id="dusukKarTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const res = await fetch('/api/stock/summary');
+    const data = await res.json();
+
+    if (data && data.kpis) {
+        document.getElementById('stokToplamUrun').innerText = data.kpis.toplamUrun ?? '-';
+        document.getElementById('stokKritikStok').innerText = data.kpis.kritikStok ?? '-';
+        document.getElementById('stokDusukKar').innerText = data.kpis.dusukKarAdet ?? '-';
+    }
+
+    const stokBody = document.getElementById('stokTableBody');
+    if (stokBody && Array.isArray(data.urunler)) {
+        stokBody.innerHTML = '';
+        data.urunler.forEach((urun) => {
+            const tr = document.createElement('tr');
+            if (urun.durum && urun.durum.kritik) tr.className = 'row-critical';
+
+            const tdUrun = document.createElement('td');
+            tdUrun.textContent = urun.urun_adi;
+            tr.appendChild(tdUrun);
+
+            const tdKat = document.createElement('td');
+            tdKat.textContent = urun.kategori_adi ?? '-';
+            tr.appendChild(tdKat);
+
+            const tdStok = document.createElement('td');
+            tdStok.style.textAlign = 'right';
+            tdStok.textContent = Number(urun.mevcut_stok ?? 0).toLocaleString('tr-TR');
+            tr.appendChild(tdStok);
+
+            const tdDurum = document.createElement('td');
+            tdDurum.style.textAlign = 'center';
+            const span = document.createElement('span');
+            span.className = `status-badge ${urun.durum?.cls ?? ''}`;
+            span.textContent = urun.durum?.text ?? '-';
+            tdDurum.appendChild(span);
+            tr.appendChild(tdDurum);
+
+            const tdFiyat = document.createElement('td');
+            tdFiyat.style.textAlign = 'right';
+            const fiyat = Number(urun.satis_fiyati ?? 0);
+            tdFiyat.textContent = fiyat.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            tr.appendChild(tdFiyat);
+
+            const tdTedarik = document.createElement('td');
+            tdTedarik.style.textAlign = 'center';
+            tdTedarik.textContent = (urun.tedarik_suresi_gun ?? '-') + ' Gün';
+            tr.appendChild(tdTedarik);
+
+            stokBody.appendChild(tr);
+        });
+    }
+
+    const lowBody = document.getElementById('dusukKarTableBody');
+    if (lowBody && Array.isArray(data.dusukKarUrunler)) {
+        lowBody.innerHTML = '';
+
+        const karOneriKutusu = document.getElementById('karOneriKutusu');
+        const karOneriMetni = document.getElementById('karOneriMetni');
+        if (karOneriKutusu && karOneriMetni && data.dusukKarUrunler.length > 0) {
+            const normalizeKarTutar = (u) => {
+                const maliyet = Number(u?.birim_maliyet ?? 0);
+                if (typeof u?.kar_tutar !== 'undefined') return Number(u.kar_tutar ?? 0);
+                return Number(u?.satis_fiyati ?? 0) - maliyet;
+            };
+
+            const zararliUrunler = data.dusukKarUrunler.filter((u) => normalizeKarTutar(u) < 0);
+            const dusukKarliUrunler = data.dusukKarUrunler.filter((u) => {
+                const karYuzde = Number(u?.kar_yuzde ?? 0);
+                return karYuzde >= 0 && karYuzde <= 10;
+            });
+
+            const dusukKarUrunAdedi = zararliUrunler.length + dusukKarliUrunler.length;
+            karOneriKutusu.classList.remove('alert--error', 'alert--medium');
+
+            if (dusukKarUrunAdedi > 0) {
+                if (zararliUrunler.length > 0) {
+                    karOneriKutusu.classList.add('alert--error');
+                } else {
+                    karOneriKutusu.classList.add('alert--medium');
+                }
+
+                karOneriKutusu.style.display = 'flex';
+                karOneriMetni.innerText = dusukKarUrunAdedi + ' ürün düşük kârda. Olası nedenler: yüksek tedarik maliyeti, yanlış ürün karması, düşük talep. Satın alma ve kategori yönetimi aksiyonu gerekiyor.';
+            }
+        }
+
+        if (data.dusukKarUrunler.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 4;
+            td.className = 'muted';
+            td.style.textAlign = 'center';
+            td.textContent = 'Riskli ürün yok.';
+            tr.appendChild(td);
+            lowBody.appendChild(tr);
+        } else {
+            data.dusukKarUrunler.forEach((u) => {
+                const tr = document.createElement('tr');
+                tr.className = 'row-critical';
+
+                const tdUrun = document.createElement('td');
+                tdUrun.textContent = u.urun_adi;
+                tr.appendChild(tdUrun);
+
+                const tdMaliyet = document.createElement('td');
+                tdMaliyet.style.textAlign = 'right';
+                tdMaliyet.style.color = '#c62828';
+                tdMaliyet.textContent = Number(u.birim_maliyet ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+                tr.appendChild(tdMaliyet);
+
+                const tdSatis = document.createElement('td');
+                tdSatis.style.textAlign = 'right';
+                tdSatis.textContent = Number(u.satis_fiyati ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+                tr.appendChild(tdSatis);
+
+                const tdKar = document.createElement('td');
+                tdKar.style.textAlign = 'center';
+                const span = document.createElement('span');
+                span.className = 'status-badge status-critical';
+                span.textContent = `%${Number(u.kar_yuzde ?? 0).toLocaleString('tr-TR')}`;
+                tdKar.appendChild(span);
+                tr.appendChild(tdKar);
+
+                lowBody.appendChild(tr);
+            });
+        }
+    }
+
+    const scatterEl = document.getElementById('fiyatStokAnaliz');
+    if (scatterEl && typeof Chart !== 'undefined' && data.charts && data.charts.scatter) {
+        const urunData = data.charts.scatter;
+
+        const stokOneriKutusu = document.getElementById('stokOneriKutusu');
+        const stokOneriMetni = document.getElementById('stokOneriMetni');
+        if (stokOneriKutusu && stokOneriMetni) {
+            const riskliUrunler = new Set();
+            (urunData.data || []).forEach((d) => {
+                const stok = Number(d && d.x ? d.x : 0);
+                const fiyat = Number(d && d.y ? d.y : 0);
+                const _baglananSermaye = stok * fiyat;
+
+                if (fiyat > 10000 && stok > 3 && d && d.urun_adi) {
+                    riskliUrunler.add(String(d.urun_adi));
+                }
+            });
+
+            if (riskliUrunler.size > 0) {
+                stokOneriKutusu.style.display = 'flex';
+                stokOneriMetni.innerText = 'Dikkat! ' + Array.from(riskliUrunler).join(', ') + ' gibi yüksek fiyatlı ürünlerde stok seviyesi yüksek. Nakit akışını rahatlatmak için bu ürünlerde kampanya yapmanız önerilir.';
+            }
+        }
+
+        new Chart(scatterEl.getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: (urunData.cats || []).map(cat => ({
+                    label: cat,
+                    data: (urunData.data || []).filter(d => d.kategori === cat).map(d => ({ x: d.x, y: d.y, name: d.urun_adi })),
+                    backgroundColor: (urunData.colors || {})[cat]
+                }))
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+                    tooltip: { callbacks: { label: c => c.raw.name + ': ' + c.parsed.y + '₺' } }
+                }
+            }
+        });
+    }
+
+    const pieEl = document.getElementById('kategoriDagilimGrafik');
+    if (pieEl && typeof Chart !== 'undefined' && Array.isArray(data.kategoriDagilim)) {
+        new Chart(pieEl.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: data.kategoriDagilim.map(r => r.kategori_adi),
+                datasets: [{
+                    data: data.kategoriDagilim.map(r => Number(r.urun_sayisi || 0)),
+                    backgroundColor: ['#FFAB91','#81C784','#64B5F6','#BA68C8','#FFD54F','#B0BEC5',"#9c5406f5"]
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    const lowMarginEl = document.getElementById('dusukKarChart');
+    if (lowMarginEl && typeof Chart !== 'undefined' && Array.isArray(data.dusukKarUrunler) && data.dusukKarUrunler.length > 0) {
+        const labels = data.dusukKarUrunler.map(u => u.urun_adi);
+        const cost = data.dusukKarUrunler.map(u => Number(u.birim_maliyet || 0));
+        const profit = data.dusukKarUrunler.map(u => Number(u.kar_tutar || 0));
+        new Chart(lowMarginEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Maliyet', data: cost, backgroundColor: '#ef5350', borderRadius: 4 },
+                    { label: 'Kâr', data: profit, backgroundColor: '#66bb6a', borderRadius: 4 }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, ticks: { font: { size: 10 } } }
+                },
+                plugins: { legend: { position: 'top', labels: { boxWidth: 10 } } }
+            }
+        });
+    }
+});
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

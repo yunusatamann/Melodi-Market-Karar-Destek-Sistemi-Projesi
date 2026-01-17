@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - CRM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .badge {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        .badge-vip { background-color: #ffffffff; color: #4A148C; border: 0px solid #CE93D8; }
+        .badge-loyal { background-color: #ffffffff; color: #1B5E20; border: 0px solid #A5D6A7; }
+        .badge-standard { background-color: #BBDEFB; color: #0D47A1; border: 1px solid #90CAF9; }
+        .badge-potential { background-color: #F5F5F5; color: #616161; border: 1px solid #E0E0E0; }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+
+        .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .kpi-card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .kpi-title { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; color: #1e293b; }
+        .kpi-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item">Satışlar</a>
+            <a href="raporlar.html" class="nav-item">Raporlar </a>
+            <a href="senaryolar.html" class="nav-item">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item nav-item--active">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Müşteriler &amp; CRM</h1>
+                <p class="muted">Müşteri segmentasyonu ve analiz paneli</p>
+            </div>
+            <div class="header-actions"><div class="avatar">MM</div></div>
+        </header>
+
+        <section class="kpi-row" style="margin-bottom: 2rem;">
+            <div class="kpi-card" style="border-left: 4px solid #FFA726;">
+                <div class="kpi-title">Toplam Müşteri</div>
+                <div class="kpi-value" id="kpiToplamMusteri">-</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid #66BB6A;">
+                <div class="kpi-title">En Değerli Müşteri</div>
+                <div class="kpi-value" id="kpiEnDegerli" style="font-size: 1.2rem;">-</div>
+                <div class="kpi-sub" id="kpiEnDegerliTutar">-</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid #42A5F5;">
+                <div class="kpi-title">Ortalama Müşteri Değeri</div>
+                <div class="kpi-value" id="kpiOrtalamaDeger">-</div>
+            </div>
+        </section>
+
+        <div class="charts-grid">
+            <div class="panel">
+                <div class="panel__header"><div class="panel__title">Müşteri Lokasyon Analizi</div></div>
+                <div class="panel__body" style="position: relative;">
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="cityChart"></canvas>
+                    </div>
+                    <div id="lokasyonOneriKutusu" class="alert alert--medium" style="margin-top: 8px; padding: 6px 10px; font-size: 11px; min-height: auto; display: none;">
+                        <div class="alert__icon" style="font-size: 14px; margin-right: 8px;"><span></span></div>
+                        <div class="alert__content">
+                            <div class="alert__title" style="font-size: 11px; margin-bottom: 2px;">Sistem Önerisi</div>
+                            <div class="alert__meta" id="lokasyonOneriMetni" style="font-size: 11px; line-height: 1.2;">Analiz ediliyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel__header"><div class="panel__title">Top 5 VIP Müşteri</div></div>
+                <div class="panel__body" style="position: relative;">
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="vipChart"></canvas>
+                    </div>
+                    <div id="vipOneriKutusu" class="alert alert--medium" style="margin-top: 8px; padding: 6px 10px; font-size: 11px; min-height: auto; display: none;">
+                        <div class="alert__icon" style="font-size: 14px; margin-right: 8px;"><span></span></div>
+                        <div class="alert__content">
+                            <div class="alert__title" style="font-size: 11px; margin-bottom: 2px;">Sistem Önerisi</div>
+                            <div class="alert__meta" id="vipOneriMetni" style="font-size: 11px; line-height: 1.2;">Analiz ediliyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="panel">
+            <div class="panel__header">
+                <div class="panel__title">Müşteri Değer Matrisi</div>
+            </div>
+            <div class="panel__body" style="position: relative;">
+                <div style="height: 360px; position: relative; width: 100%;">
+                    <canvas id="valueMatrixChart"></canvas>
+                </div>
+                <div id="hatirlatmaOneriKutusu" class="alert alert--medium" style="margin-top: 8px; padding: 6px 10px; font-size: 11px; min-height: auto; display: none;">
+                    <div class="alert__icon" style="font-size: 14px; margin-right: 8px;"><span></span></div>
+                    <div class="alert__content">
+                        <div class="alert__title" style="font-size: 11px; margin-bottom: 2px;">Sistem Önerisi</div>
+                        <div class="alert__meta" id="hatirlatmaOneriMetni" style="font-size: 11px; line-height: 1.2;">Analiz ediliyor...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const res = await fetch('/api/customers/summary');
+    const data = await res.json();
+
+    if (data && data.kpis) {
+        document.getElementById('kpiToplamMusteri').innerText = data.kpis.toplamMusteri ?? '-';
+        document.getElementById('kpiEnDegerli').innerText = data.kpis.enDegerliMusteriAd ?? '-';
+        document.getElementById('kpiEnDegerliTutar').innerText = data.kpis.enDegerliMusteriTutar ?? '-';
+        document.getElementById('kpiOrtalamaDeger').innerText = data.kpis.ortalamaDeger ?? '-';
+    }
+
+    if (typeof Chart !== 'undefined' && data && data.charts) {
+        const sehirDagilimi = data.charts.sehirDagilimi || {};
+
+        const lokasyonOneriKutusu = document.getElementById('lokasyonOneriKutusu');
+        const lokasyonOneriMetni = document.getElementById('lokasyonOneriMetni');
+        if (lokasyonOneriKutusu && lokasyonOneriMetni) {
+            const entries = Object.entries(sehirDagilimi)
+                .map(([sehir, adet]) => [String(sehir), Number(adet || 0)])
+                .filter(([, adet]) => Number.isFinite(adet) && adet > 0)
+                .sort((a, b) => b[1] - a[1]);
+
+            if (entries.length > 0) {
+                const depoSehri = entries[0][0];
+                const reklamSehirleri = entries.slice(0, 3).map(([sehir]) => sehir).join(', ');
+                lokasyonOneriKutusu.style.display = 'flex';
+                lokasyonOneriMetni.innerText = 'Müşteriler en çok ' + depoSehri + ' şehrinde yoğunlaşıyor. Depo bölgesi için ' + depoSehri + ' ve çevresi önceliklendirilebilir. Reklam hedeflemesinde ise ' + reklamSehirleri + ' şehirlerine odaklanmanız önerilir.';
+            }
+        }
+
+        const cityCtx = document.getElementById('cityChart');
+        if (cityCtx) {
+            new Chart(cityCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(sehirDagilimi),
+                    datasets: [{
+                        data: Object.values(sehirDagilimi),
+                        backgroundColor: ['#FFAB91', '#81C784', '#64B5F6', '#BA68C8', '#FFD54F', '#B0BEC5'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+        }
+
+        const vipCtx = document.getElementById('vipChart');
+        if (vipCtx) {
+            new Chart(vipCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.charts.top5Isimler || [],
+                    datasets: [{
+                        label: 'Toplam Harcama (TL)',
+                        data: data.charts.top5Cirolar || [],
+                        backgroundColor: '#A5D6A7',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        const vipOneriKutusu = document.getElementById('vipOneriKutusu');
+        const vipOneriMetni = document.getElementById('vipOneriMetni');
+        if (vipOneriKutusu && vipOneriMetni) {
+            const top5 = (data.charts.top5Cirolar || []).map(v => Number(v || 0)).filter(v => Number.isFinite(v) && v > 0);
+            const musteriler = Array.isArray(data.musteriler) ? data.musteriler : [];
+            const toplamCiro = musteriler.reduce((acc, m) => acc + Number(m?.toplam_harcama || 0), 0);
+            const genelOrtalama = musteriler.length > 0 ? (toplamCiro / musteriler.length) : 0;
+            const vipOrtalama = top5.length > 0 ? (top5.reduce((a, b) => a + b, 0) / top5.length) : 0;
+
+            if (genelOrtalama > 0 && vipOrtalama > 0) {
+                const yuzdeFark = ((vipOrtalama / genelOrtalama) - 1) * 100;
+                vipOneriKutusu.style.display = 'flex';
+                vipOneriMetni.innerText = 'Bu müşteriler genel satış ortalamasının %' + Number(yuzdeFark).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' üzerinde. Bu müşteriler için indirim veya hediye kampanyası uygulayabilirsiniz.';
+            }
+        }
+
+        const vm = Array.isArray(data.charts.valueMatrix) ? data.charts.valueMatrix : [];
+        const el = document.getElementById('valueMatrixChart');
+        if (el) {
+            const vip = [];
+            const loyal = [];
+            const standard = [];
+
+            const hatirlatmaOneriKutusu = document.getElementById('hatirlatmaOneriKutusu');
+            const hatirlatmaOneriMetni = document.getElementById('hatirlatmaOneriMetni');
+            if (hatirlatmaOneriKutusu && hatirlatmaOneriMetni) {
+                const hedefKisiler = vm
+                    .map((p) => ({
+                        x: Number(p?.x || 0),
+                        y: Number(p?.y || 0),
+                        name: String(p?.name || '')
+                    }))
+                    .filter((p) => p.name && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x > 50 && p.y > 75000)
+                    .sort((a, b) => b.y - a.y)
+                    .slice(0, 8);
+
+                if (hedefKisiler.length > 0) {
+                    const liste = hedefKisiler
+                        .map((p) => p.name + ' (' + Number(p.y).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL)')
+                        .join(', ');
+                    hatirlatmaOneriKutusu.style.display = 'flex';
+                    hatirlatmaOneriMetni.innerText = '50+ gündür alışveriş yapmayan ve 75.000 TL üzeri müşteriler: ' + liste + '. Bu müşterilere hatırlatma mesajı yollayabilirsiniz; bu müşterilere kendinizi hatırlatmanız önerilir.';
+                }
+            }
+
+            vm.forEach((p) => {
+                const point = {
+                    x: Number(p.x || 0),
+                    y: Number(p.y || 0),
+                    name: p.name || '',
+                    segment: p.segment || ''
+                };
+                if (p.segment === 'VIP') vip.push(point);
+                else if (p.segment === 'Sadık') loyal.push(point);
+                else standard.push(point);
+            });
+
+            new Chart(el.getContext('2d'), {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'VIP',
+                            data: vip,
+                            backgroundColor: '#E6B86A',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Sadık',
+                            data: loyal,
+                            backgroundColor: '#9CAD83',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        },
+                        {
+                            label: 'Standart/Diğer',
+                            data: standard,
+                            backgroundColor: '#6B8E9B',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    const raw = ctx.raw || {};
+                                    const name = raw.name || '';
+                                    const harcama = Number(raw.y || 0).toLocaleString('tr-TR', { maximumFractionDigits: 2 });
+                                    const gun = Number(raw.x || 0);
+                                    return `${name} - Harcama: ${harcama} TL - ${gun} Gün Önce`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Son İşlemden Geçen Gün' },
+                            beginAtZero: true
+                        },
+                        y: {
+                            title: { display: true, text: 'Toplam Harcama (TL)' },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' TL';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

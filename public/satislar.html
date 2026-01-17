@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - Satışlar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item nav-item--active">Satışlar</a>
+            <a href="raporlar.html" class="nav-item">Raporlar </a>
+            <a href="senaryolar.html" class="nav-item">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Satışlar</h1>
+                <p class="muted">Gerçekleşen satış işlemleri ve özet performans</p>
+            </div>
+            <div class="header-actions">
+<div class="avatar">MM</div>
+            </div>
+        </header>
+
+        <div id="yazUyari" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r" style="display:none;">
+            <div class="flex items-center">
+                <div class="flex-shrink-0"></div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Mevsimsel Trend Uyarısı!</strong> Geçmiş veriler <strong>Haziran</strong> aylarında satışların ciddi oranda arttığını gösteriyor . <strong>Haziran 2026</strong> için stoklarınızı şimdiden artırmanız önerilir!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <section class="mt-8 px-4 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Yıllara Göre Aylık Satış Dağılımı</h2>
+                <div class="h-96">
+                    <canvas id="seasonalChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="kpi-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; position: relative; z-index: 10;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">2023</div>
+                        <select id="yearSelect2023" style="border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.875rem; color: #475569; background: white;"></select>
+                    </div>
+                    <div style="margin-bottom: 0.75rem; position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Toplam Ciro</div>
+                        <div id="ciro-2023" style="font-size: 1.5rem; font-weight: 600; color: #059669;">-</div>
+                    </div>
+                    <div style="position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Net Kâr</div>
+                        <div id="kar-2023" style="font-size: 1.25rem; font-weight: 600; color: #7c3aed;">-</div>
+                    </div>
+                    <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; font-weight: 900; color: #f1f5f9; z-index: 0; pointer-events: none;">2023</div>
+                </div>
+
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; height: 200px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <canvas id="chart2023"></canvas>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; position: relative; z-index: 10;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">2024</div>
+                        <select id="yearSelect2024" style="border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.875rem; color: #475569; background: white;"></select>
+                    </div>
+                    <div style="margin-bottom: 0.75rem; position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Toplam Ciro</div>
+                        <div id="ciro-2024" style="font-size: 1.5rem; font-weight: 600; color: #059669;">-</div>
+                    </div>
+                    <div style="position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Net Kâr</div>
+                        <div id="kar-2024" style="font-size: 1.25rem; font-weight: 600; color: #7c3aed;">-</div>
+                    </div>
+                    <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; font-weight: 900; color: #f1f5f9; z-index: 0; pointer-events: none;">2024</div>
+                </div>
+
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; height: 200px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <canvas id="chart2024"></canvas>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.5rem; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; position: relative; z-index: 10;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;">2025</div>
+                        <select id="yearSelect2025" style="border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.25rem; font-size: 0.875rem; color: #475569; background: white;"></select>
+                    </div>
+                    <div style="margin-bottom: 0.75rem; position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Toplam Ciro</div>
+                        <div id="ciro-2025" style="font-size: 1.5rem; font-weight: 600; color: #059669;">-</div>
+                    </div>
+                    <div style="position: relative; z-index: 10;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Net Kâr</div>
+                        <div id="kar-2025" style="font-size: 1.25rem; font-weight: 600; color: #7c3aed;">-</div>
+                    </div>
+                    <div style="position: absolute; top: -10px; right: -10px; font-size: 4rem; font-weight: 900; color: #f1f5f9; z-index: 0; pointer-events: none;">2025</div>
+                </div>
+
+                <div class="kpi-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; height: 200px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);">
+                    <canvas id="chart2025"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const res = await fetch('/api/sales/summary');
+    const data = await res.json();
+
+    if (data && data.yazSezonuUyarisi) {
+        document.getElementById('yazUyari').style.display = 'block';
+    }
+
+    // Son 50 satış tablosu
+    const tbody = document.getElementById('satislarTableBody');
+    if (tbody && Array.isArray(data.satislar)) {
+        tbody.innerHTML = '';
+        data.satislar.forEach((s) => {
+            const tr = document.createElement('tr');
+            const toplam = Number(s.adet || 0) * Number(s.satis_fiyati || 0);
+
+            const tdTarih = document.createElement('td');
+            tdTarih.textContent = s.satis_tarihi;
+            tr.appendChild(tdTarih);
+
+            const tdUrun = document.createElement('td');
+            tdUrun.textContent = s.urun_adi ?? '-';
+            tr.appendChild(tdUrun);
+
+            const tdMusteri = document.createElement('td');
+            tdMusteri.textContent = s.ad_soyad ?? '-';
+            tr.appendChild(tdMusteri);
+
+            const tdAdet = document.createElement('td');
+            tdAdet.textContent = Number(s.adet || 0);
+            tr.appendChild(tdAdet);
+
+            const tdFiyat = document.createElement('td');
+            tdFiyat.textContent = Number(s.satis_fiyati || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            tr.appendChild(tdFiyat);
+
+            const tdToplam = document.createElement('td');
+            tdToplam.textContent = toplam.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            tr.appendChild(tdToplam);
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Mevsimsellik grafiği
+    if (typeof Chart !== 'undefined' && data.yearlyData) {
+        const yearlyData = data.yearlyData;
+
+        const colors = [
+            { bg: 'rgba(59, 130, 246, 0.2)', border: 'rgb(59, 130, 246)' },
+            { bg: 'rgba(16, 185, 129, 0.2)', border: 'rgb(16, 185, 129)' },
+            { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgb(245, 158, 11)' },
+            { bg: 'rgba(139, 92, 246, 0.2)', border: 'rgb(139, 92, 246)' }
+        ];
+        const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+        const datasets = [];
+        let colorIndex = 0;
+        for (const [year, monthlyData] of Object.entries(yearlyData)) {
+            const color = colors[colorIndex % colors.length];
+            colorIndex++;
+
+            const arr = [];
+            for (let i = 1; i <= 12; i++) {
+                arr.push(Number(monthlyData[i] || 0));
+            }
+
+            datasets.push({
+                label: year + ' Yılı',
+                data: arr,
+                backgroundColor: color.bg,
+                borderColor: color.border,
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false
+            });
+        }
+
+        const el = document.getElementById('seasonalChart');
+        if (el) {
+            new Chart(el.getContext('2d'), {
+                type: 'line',
+                data: { labels: months, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' ₺';
+                                }
+                            },
+                            title: { display: true, text: 'Aylık Ciro (₺)' }
+                        },
+                        x: { title: { display: true, text: 'Aylar' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + Number(context.raw).toLocaleString('tr-TR', { maximumFractionDigits: 2 }) + ' ₺';
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 20
+                            }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+        }
+    }
+
+    // Performans kartları (dropdown + KPI)
+    const performansVerileri = data.performansData || {};
+    const aylar = {
+        1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+        7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+    };
+
+    const yearlyCharts = {};
+    const pastelColors = [
+        '#6B8E9B',
+        '#D98E73',
+        '#9CAD83',
+        '#E6B86A',
+        '#B9A7D1',
+        '#8E7F6A',
+        '#A7C7A1',
+        '#C9A27B'
+    ];
+
+    const categoryColorMap = {};
+
+    function hashStringToInt(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash);
+    }
+
+    function hslToHex(h, s, l) {
+        s /= 100;
+        l /= 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const m = l - c / 2;
+        let r = 0, g = 0, b = 0;
+
+        if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+        else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+        else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+        else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+        else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+
+        const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    function getColorForCategory(name) {
+        const key = String(name || '').trim();
+        if (!key) return pastelColors[0];
+        if (categoryColorMap[key]) return categoryColorMap[key];
+
+        const hash = hashStringToInt(key);
+        const palettePick = pastelColors[hash % pastelColors.length];
+        const hue = hash % 360;
+        const generated = hslToHex(hue, 35, 55);
+
+        categoryColorMap[key] = generated || palettePick;
+        return categoryColorMap[key];
+    }
+
+    async function fetchYearlyStats(yil, ay) {
+        const url = `/api/sales/yearly-stats?year=${encodeURIComponent(yil)}&month=${encodeURIComponent(ay)}&ts=${Date.now()}`;
+        const r = await fetch(url, { cache: 'no-store' });
+        if (!r.ok) throw new Error('yearly_stats_failed');
+        return r.json();
+    }
+
+    function renderMiniBarChart(yil, breakdown) {
+        const canvas = document.getElementById(`chart${yil}`);
+        if (!canvas || typeof Chart === 'undefined') return;
+
+        if (yearlyCharts[yil]) {
+            yearlyCharts[yil].destroy();
+            yearlyCharts[yil] = null;
+        }
+
+        const labels = (breakdown && Array.isArray(breakdown.labels)) ? breakdown.labels : [];
+        const values = (breakdown && Array.isArray(breakdown.data)) ? breakdown.data : [];
+        if (!labels.length || !values.length) return;
+
+        const colors = labels.map((lbl) => getColorForCategory(lbl));
+
+        yearlyCharts[yil] = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    maxBarThickness: 24
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const v = Number(context.raw || 0);
+                                return `${context.label}: ${v.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            display: true,
+                            autoSkip: true,
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: { size: 10 },
+                            color: '#5a5246'
+                        }
+                    },
+                    y: {
+                        grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                        ticks: {
+                            display: true,
+                            font: { size: 10 },
+                            color: '#5a5246',
+                            callback: function(value) {
+                                return Number(value).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' ₺';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function fillSelect(selectEl, yil) {
+        if (!selectEl) return;
+        selectEl.innerHTML = '';
+        const optAll = document.createElement('option');
+        optAll.value = '0';
+        optAll.textContent = 'Tüm Yıl';
+        selectEl.appendChild(optAll);
+        Object.entries(aylar).forEach(([k, v]) => {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = v;
+            selectEl.appendChild(opt);
+        });
+        selectEl.addEventListener('change', () => updateCard(yil, selectEl.value));
+    }
+
+    async function updateCard(yil, ay) {
+        const veri = (performansVerileri[yil] && performansVerileri[yil][String(ay)]) ? performansVerileri[yil][String(ay)] : { ciro: 0, kar: 0 };
+        const formatter = new Intl.NumberFormat('tr-TR', {
+            style: 'currency',
+            currency: 'TRY',
+            minimumFractionDigits: 2
+        });
+        const ciroEl = document.getElementById(`ciro-${yil}`);
+        const karEl = document.getElementById(`kar-${yil}`);
+        if (ciroEl) ciroEl.innerText = formatter.format(Number(veri.ciro || 0));
+        if (karEl) karEl.innerText = formatter.format(Number(veri.kar || 0));
+
+        try {
+            const stats = await fetchYearlyStats(yil, ay);
+            if (ciroEl) ciroEl.innerText = formatter.format(Number(stats.totalCiro || 0));
+            if (karEl) karEl.innerText = formatter.format(Number(stats.totalKar || 0));
+            renderMiniBarChart(yil, stats.breakdown);
+        } catch (e) {
+            // If backend is unavailable, keep KPI fallback values and avoid chart crash
+            renderMiniBarChart(yil, { labels: [], data: [] });
+        }
+    }
+
+    [2023, 2024, 2025].forEach((y) => {
+        fillSelect(document.getElementById(`yearSelect${y}`), y);
+        updateCard(y, 0);
+    });
+});
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

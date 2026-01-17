@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        @media (max-width: 960px) { .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item nav-item--active">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item">Satışlar</a>
+            <a href="raporlar.html" class="nav-item">Raporlar </a>
+            <a href="senaryolar.html" class="nav-item">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Ana Sayfa / Dashboard</h1>
+                <p class="muted">Melodi Marketi karar destek özeti</p>
+            </div>
+            <div class="header-actions">
+                <div class="avatar">MM</div>
+            </div>
+        </header>
+
+        <section class="kpi-row">
+            <div class="kpi-card kpi-card--blue">
+                <div class="kpi-title">Toplam Ürün</div>
+                <div class="kpi-value" id="kpiToplamUrun">-</div>
+                <div class="kpi-sub">Aktif ürün sayısı</div>
+            </div>
+            <div class="kpi-card kpi-card--red">
+                <div class="kpi-title">Kritik Stok</div>
+                <div class="kpi-value" id="kpiKritikStok">-</div>
+                <div class="kpi-sub">Güvenlik stokunun altında ürün</div>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">Stok Risk Analizi (Kritik Eşik)</div>
+                </div>
+                <div class="panel__body" style="height: 600px;">
+                    <canvas id="riskChart"></canvas>
+                    <div id="riskOneriKutusu" class="alert alert--medium" style="margin-top: 15px; display: none;">
+                        <div class="alert__icon"><span></span></div>
+                        <div class="alert__content">
+                            <div class="alert__title">Sistem Önerisi</div>
+                            <div class="alert__meta" id="riskOneriMetni">Veriler analiz ediliyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">Analiz ve Simülasyon</div>
+                </div>
+                <div class="panel__body">
+                    <div class="chart-block">
+                        <div class="chart-block__title">Aylık Satış Trendi (Ciro - Son 12 Ay)</div>
+                        <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div class="chart-block">
+                        <div class="chart-block__title">Kategori Bazlı Ciro Payı</div>
+                        <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+                            <div id="kategoriOneriKutusu" class="alert alert--medium" style="margin-top: 15px; display: none;">
+                                <div class="alert__icon"><span></span></div>
+                                <div class="alert__content">
+                                    <div class="alert__title">Sistem Önerisi</div>
+                                    <div class="alert__meta" id="kategoriOneriMetni"></div>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const res = await fetch('/api/dashboard/summary');
+        const data = await res.json();
+
+        if (data && data.kpis) {
+            if (typeof data.kpis.toplamUrun !== 'undefined') {
+                document.getElementById('kpiToplamUrun').innerText = data.kpis.toplamUrun;
+            }
+            if (typeof data.kpis.kritikStok !== 'undefined') {
+                document.getElementById('kpiKritikStok').innerText = data.kpis.kritikStok;
+            }
+        }
+
+        const charts = data && data.charts ? data.charts : null;
+        if (!charts) return;
+
+        // 1) Stok Risk Analizi Grafiği (index.php ile aynı davranış)
+        if (typeof Chart !== 'undefined' && charts.stokRisk && charts.stokRisk.length > 0) {
+            const ctxRisk = document.getElementById('riskChart');
+            if (ctxRisk) {
+                const labels = charts.stokRisk.map(item => item.urun_adi);
+                const dolulukOrani = charts.stokRisk.map(item => Number(item.doluluk_orani || 0));
+                const mevcutStoklar = charts.stokRisk.map(item => Number(item.mevcut_stok || 0));
+                const minStoklar = charts.stokRisk.map(item => Number(item.min_stok_seviyesi || 0));
+
+                const esikDegeri = Array(dolulukOrani.length).fill(100);
+                const barRenkleri = dolulukOrani.map(oran => oran < 100 ? '#e53935' : '#43a047');
+
+                const riskOneriKutusu = document.getElementById('riskOneriKutusu');
+                const riskOneriMetni = document.getElementById('riskOneriMetni');
+                if (riskOneriKutusu && riskOneriMetni) {
+                    const riskliKategoriler = new Set();
+                    charts.stokRisk.forEach((item) => {
+                        const oran = Number(item && item.doluluk_orani ? item.doluluk_orani : 0);
+                        if (oran < 100 && item && item.kategori_adi) {
+                            riskliKategoriler.add(String(item.kategori_adi));
+                        }
+                    });
+
+                    if (riskliKategoriler.size > 0) {
+                        const kategoriListesi = Array.from(riskliKategoriler).join(', ');
+                        riskOneriKutusu.style.display = 'flex';
+                        riskOneriMetni.innerText = 'Dikkat! ' + kategoriListesi + ' kategorilerinde stok riskiniz var. Kontrol etmelisiniz.';
+                    }
+                }
+
+                new Chart(ctxRisk, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Doluluk Oranı (%)',
+                                data: dolulukOrani,
+                                backgroundColor: barRenkleri,
+                                borderColor: barRenkleri,
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Kritik Eşik (100%)',
+                                data: esikDegeri,
+                                type: 'line',
+                                borderColor: '#d32f2f',
+                                borderDash: [5, 5],
+                                borderWidth: 2,
+                                fill: false,
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                                tension: 0,
+                                yAxisID: 'y'
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.dataset.label === 'Doluluk Oranı (%)') {
+                                            const index = context.dataIndex;
+                                            const mevcut = mevcutStoklar[index];
+                                            const min = minStoklar[index];
+                                            const oran = dolulukOrani[index];
+                                            return [
+                                                'Doluluk Oranı: ' + oran.toFixed(1) + '%',
+                                                'Mevcut: ' + mevcut,
+                                                'Min Seviye: ' + min
+                                            ];
+                                        }
+                                        return context.dataset.label + ': ' + context.parsed.x + '%';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 200,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    minRotation: 0,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 2) Aylık Satış Trendi (Ciro - Son 12 Ay)
+        if (typeof Chart !== 'undefined' && charts.satisTrend && charts.satisTrend.length > 0) {
+            const ctxSales = document.getElementById('salesChart');
+            if (ctxSales) {
+                const labels = charts.satisTrend.map(r => r.ay_adi);
+                const values = charts.satisTrend.map(r => Number(r.toplam_ciro || 0));
+                new Chart(ctxSales, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Ciro (₺)',
+                            data: values,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (c) => ' ' + Number(c.parsed.y || 0).toLocaleString('tr-TR') + ' ₺'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: (v) => Number(v).toLocaleString('tr-TR')
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 3) Kategori Bazlı Ciro Payı
+        if (typeof Chart !== 'undefined' && charts.kategoriPay && charts.kategoriPay.length > 0) {
+            const ctxCat = document.getElementById('categoryChart');
+            if (ctxCat) {
+                const labels = charts.kategoriPay.map(r => r.kategori_adi);
+                const values = charts.kategoriPay.map(r => Number(r.ciro || 0));
+                new Chart(ctxCat, {
+                    type: 'doughnut',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: ['#FFAB91','#81C784','#64B5F6','#BA68C8','#FFD54F','#B0BEC5', '#9c5406f5'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' }
+                        }
+                    }
+                });
+
+                    // Kategori öneri kutusu
+                    const kategoriOneriKutusu = document.getElementById('kategoriOneriKutusu');
+                    const kategoriOneriMetni = document.getElementById('kategoriOneriMetni');
+                    if (kategoriOneriKutusu && kategoriOneriMetni && charts.kategoriPay.length > 0) {
+                        // Büyükten küçüğe sırala
+                        const sorted = [...charts.kategoriPay].sort((a, b) => Number(b.ciro) - Number(a.ciro));
+                        const top3 = sorted.slice(0, 3).map(r => r.kategori_adi);
+                        const min1 = sorted[sorted.length - 1]?.kategori_adi;
+                        let msg = '';
+                        if (top3.length > 0) {
+                            msg += `Kategorileriniz arasında en önemli ciro payı <b>${top3.join(', ')}</b> türlerinden gelmektedir. Bu türlerdeki enstrümanların stok kontrollerini, yatırım planlarınızı yapmanız önerilir.`;
+                        }
+                        if (min1) {
+                            msg += `<br><br>En az ciro payı ise <b>${min1}</b> kategorisindedir.`;
+                        }
+                        kategoriOneriMetni.innerHTML = msg;
+                        kategoriOneriKutusu.style.display = 'flex';
+                    }
+            }
+        }
+    });
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

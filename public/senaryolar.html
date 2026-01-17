@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - Senaryolar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item">Satışlar</a>
+            <a href="raporlar.html" class="nav-item">Raporlar </a>
+            <a href="senaryolar.html" class="nav-item nav-item--active">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Senaryolar</h1>
+                <p class="muted">Kur değişimi ve stok planlama senaryolarının özeti</p>
+            </div>
+            <div class="header-actions">
+<div class="avatar">MM</div>
+            </div>
+        </header>
+
+        <section class="grid">
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">Kur Simülasyonu</div>
+                </div>
+                <div class="panel__body">
+                    <div class="scenario">
+                        <div class="panel__body">
+    <div class="scenario">
+        <form id="simulateForm">
+
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Ürün Seçin</label>
+                <select id="urunSelect" name="urun_id" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></select>
+            </div>
+
+            <div class="scenario__sliders">
+                <label>
+                    Tahmini Kur: <span id="spanKur" style="color:#d63384; font-weight:bold;">35.00</span> TL
+                    <input id="kurInput" type="range" name="kur" min="20" max="60" step="0.5" value="35.00"
+                           oninput="document.getElementById('spanKur').innerText = this.value">
+                </label>
+
+                <label style="margin-top:15px;">
+                    Planlanan Alım: <span id="spanAdet" style="color:#d63384; font-weight:bold;">10</span> Adet
+                    <input id="adetInput" type="range" name="adet" min="1" max="500" step="1" value="10"
+                           oninput="document.getElementById('spanAdet').innerText = this.value">
+                </label>
+            </div>
+
+            <div style="margin-top: 25px;">
+                <button type="submit"
+                        style="width: 100%; background-color: #695a03ff; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                     Simüle Et ve Kaydet
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">Kayıtlı Senaryolar</div>
+                </div>
+                <div class="panel__body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Oluşturma Tarihi</th>
+                                <th>Ürün</th>
+                                <th>Tahmini Kur (TL)</th>
+                                <th>Planlanan Alım Adeti</th>
+                                <th>Hesaplanan Kâr</th>
+                                <th>Tahmini Stok Ömrü (ay)</th>
+                                <th>Açıklama</th>
+                            </tr>
+                            </thead>
+                            <tbody id="scenarioTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel__body" style="margin-top: 30px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h4 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Senaryo Kâr Karşılaştırması</h4>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="senaryoGrafigi"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const summaryRes = await fetch('/api/scenarios/summary');
+        const summary = await summaryRes.json();
+
+        const urunSelect = document.getElementById('urunSelect');
+        if (summary && Array.isArray(summary.urunler)) {
+            summary.urunler.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.urun_id;
+                opt.textContent = `${u.urun_adi} (Stok: ${u.mevcut_stok})`;
+                urunSelect.appendChild(opt);
+            });
+        }
+
+        const tableBody = document.getElementById('scenarioTableBody');
+        if (tableBody && Array.isArray(summary.senaryolar)) {
+            tableBody.innerHTML = '';
+            if (summary.senaryolar.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 7;
+                td.className = 'muted';
+                td.style.textAlign = 'center';
+                td.textContent = 'Kayıtlı senaryo bulunamadı.';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            } else {
+                summary.senaryolar.forEach((s) => {
+                    const tr = document.createElement('tr');
+
+                    const tdT = document.createElement('td');
+                    tdT.textContent = s.olusturma_tarihi;
+                    tr.appendChild(tdT);
+
+                    const tdU = document.createElement('td');
+                    tdU.textContent = s.urun_adi ?? '-';
+                    tr.appendChild(tdU);
+
+                    const tdK = document.createElement('td');
+                    tdK.textContent = Number(s.tahmini_kur || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    tr.appendChild(tdK);
+
+                    const tdA = document.createElement('td');
+                    tdA.textContent = Number(s.planlanan_alim_adeti || 0);
+                    tr.appendChild(tdA);
+
+                    const tdKar = document.createElement('td');
+                    tdKar.textContent = Number(s.hesaplanan_kar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+                    tr.appendChild(tdKar);
+
+                    const tdOmur = document.createElement('td');
+                    tdOmur.textContent = Number(s.hesaplanan_stok_omru || 0);
+                    tr.appendChild(tdOmur);
+
+                    const tdAc = document.createElement('td');
+                    tdAc.textContent = s.aciklama ?? '';
+                    tr.appendChild(tdAc);
+
+                    tableBody.appendChild(tr);
+                });
+            }
+        }
+
+        // Senaryo kâr grafiği (en yeni 10)
+        if (typeof Chart !== 'undefined' && Array.isArray(summary.senaryolar) && summary.senaryolar.length > 0) {
+            const all = summary.senaryolar.map((s) => ({
+                urun_adi: s.urun_adi,
+                tahmini_kur: Number(s.tahmini_kur || 0),
+                planlanan_alim_adeti: Number(s.planlanan_alim_adeti || 0),
+                hesaplanan_kar: Number(s.hesaplanan_kar || 0)
+            }));
+
+            const gosterilecekSenaryolar = [...all].reverse().slice(0, 10);
+            const labels = gosterilecekSenaryolar.map(s => {
+                const urunKisaAd = (s.urun_adi || 'Ürün').split(' ')[0];
+                return `${urunKisaAd} - Kur ${Number(s.tahmini_kur).toFixed(1)}`;
+            });
+            const karDegerleri = gosterilecekSenaryolar.map(s => s.hesaplanan_kar);
+            const adetVerileri = gosterilecekSenaryolar.map(s => s.planlanan_alim_adeti);
+
+            const canvas = document.getElementById('senaryoGrafigi');
+            if (canvas) {
+                function createGradient(ctx, chartArea) {
+                    const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                    gradient.addColorStop(0, '#1e3c72');
+                    gradient.addColorStop(1, '#2a5298');
+                    return gradient;
+                }
+
+                new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Kâr (₺)',
+                            data: karDegerleri,
+                            backgroundColor: function(context) {
+                                const chart = context.chart;
+                                const { ctx, chartArea } = chart;
+                                if (!chartArea) return null;
+                                return createGradient(ctx, chartArea);
+                            },
+                            borderColor: 'rgba(26, 54, 126, 0.7)',
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            barPercentage: 0.7,
+                            minBarLength: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false, axis: 'x' },
+                        onHover: (event, chartElement) => {
+                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(50, 50, 50, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                bodySpacing: 5,
+                                padding: 12,
+                                borderColor: 'rgba(0,0,0,0.1)',
+                                borderWidth: 1,
+                                cornerRadius: 6,
+                                callbacks: {
+                                    title: function(context) { return context[0].label; },
+                                    label: function(context) {
+                                        const index = context.dataIndex;
+                                        const kar = context.raw;
+                                        const adet = adetVerileri[index];
+                                        return [
+                                            ` Tahmini Kâr: ${Number(kar).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ₺`,
+                                            ` Planlanan Alım: ${adet} Adet`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { display: true, color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                                border: { display: false },
+                                ticks: {
+                                    callback: function(value) { return Number(value).toLocaleString('tr-TR'); },
+                                    maxTicksLimit: 6,
+                                    color: '#666',
+                                    font: { size: 11 }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Kâr (₺)',
+                                    padding: { top: 10, bottom: 10 },
+                                    color: '#555',
+                                    font: { weight: 'bold', size: 12 }
+                                }
+                            },
+                            x: {
+                                grid: { display: false, drawBorder: false },
+                                border: { display: false },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    autoSkip: false,
+                                    maxTicksLimit: 10,
+                                    color: '#555',
+                                    font: { size: 10, weight: 500 }
+                                }
+                            }
+                        },
+                        layout: { padding: { top: 10, right: 15, bottom: 10, left: 15 } },
+                        animation: { duration: 1000, easing: 'easeOutQuart' },
+                        borderRadius: 5
+                    }
+                });
+            }
+        }
+
+        document.getElementById('simulateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                urun_id: Number(document.getElementById('urunSelect').value),
+                kur: Number(document.getElementById('kurInput').value),
+                adet: Number(document.getElementById('adetInput').value)
+            };
+
+            await fetch('/api/scenarios/simulate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            location.reload();
+        });
+    });
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

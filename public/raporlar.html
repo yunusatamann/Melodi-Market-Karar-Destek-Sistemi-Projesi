@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Melodi Marketi KDS - Raporlar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar__header">
+            <div class="logo">Melodi Marketi</div>
+            <div class="subtitle"></div>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="index.html" class="nav-item">Ana Sayfa</a>
+            <a href="stok.html" class="nav-item">Stok &amp; Ürünler</a>
+            <a href="satislar.html" class="nav-item">Satışlar</a>
+            <a href="raporlar.html" class="nav-item nav-item--active">Raporlar </a>
+            <a href="senaryolar.html" class="nav-item">Senaryolar</a>
+            <a href="musteriler.html" class="nav-item">Müşteriler</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="main__header">
+            <div>
+                <h1>Raporlar </h1>
+                <p class="muted">6 aylık stok planlama, kâr marjı ve CRM özet raporları</p>
+            </div>
+            <div class="header-actions">
+<div class="avatar">MM</div>
+            </div>
+        </header>
+
+        <section class="kpi-row">
+            <div class="kpi-card kpi-card--red">
+                <div class="kpi-title">6 Ay İçinde Stoğu Bitebilecek Ürün</div>
+                <div class="kpi-value" id="stokRiskliAdet">-</div>
+                <div class="kpi-sub">Basit tahmine göre riskli ürün sayısı</div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">6 Aylık Stok Riski Olan Ürünler</div>
+                </div>
+                <div class="panel__body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Ürün</th>
+                                <th>Mevcut Stok</th>
+                                <th>Aylık Ortalama Satış</th>
+                                <th>Tahmini Stok Ömrü (ay)</th>
+                            </tr>
+                            </thead>
+                            <tbody id="stokRiskTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__header">
+                    <div class="panel__title">2026 İlk Yarı Satış Tahmini (Ocak - Haziran)</div>
+                </div>
+                <div class="panel__body">
+                    <div class="chart-block">
+                        <canvas id="satisTahminChart" style="max-height: 300px;"></canvas>
+                    </div>
+                    <div class="rounded-xl bg-white border border-gray-200 p-4 shadow-sm mt-4">
+                        <div class="text-sm text-gray-700 font-semibold">Özet</div>
+                        <div class="mt-2 text-sm text-gray-700" id="tahminOzet">-</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="mt-6">
+            <div class="mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">ABC Ürün Sınıflandırma Analizi</h2>
+                <p class="text-sm text-gray-600"></p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded-xl border">
+                    <h3 class="text-lg font-medium mb-4 text-center">Ciro Dağılımı</h3>
+                    <div class="relative h-48">
+                        <canvas id="abcChart"></canvas>
+                    </div>
+                    <div id="abcOneri" class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800 font-medium">-
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                        <div class="rounded-xl bg-green-50 border border-green-200 p-4 shadow-sm">
+                            <div class="text-sm text-green-700 font-semibold">A Grubu</div>
+                            <div class="mt-2 flex items-baseline gap-2">
+                                <span class="text-2xl font-bold text-green-800" id="abcCountA">-</span>
+                                <span class="text-sm text-green-700">ürün</span>
+                            </div>
+                            <div class="text-sm text-green-700">Ciro Payı: <span id="abcShareA">-</span>%</div>
+                        </div>
+
+                        <div class="rounded-xl bg-blue-50 border border-blue-200 p-4 shadow-sm">
+                            <div class="text-sm text-blue-700 font-semibold">B Grubu</div>
+                            <div class="mt-2 flex items-baseline gap-2">
+                                <span class="text-2xl font-bold text-blue-800" id="abcCountB">-</span>
+                                <span class="text-sm text-blue-700">ürün</span>
+                            </div>
+                            <div class="text-sm text-blue-700">Ciro Payı: <span id="abcShareB">-</span>%</div>
+                        </div>
+
+                        <div class="rounded-xl bg-gray-50 border border-gray-200 p-4 shadow-sm">
+                            <div class="text-sm text-gray-700 font-semibold">C Grubu</div>
+                            <div class="mt-2 flex items-baseline gap-2">
+                                <span class="text-2xl font-bold text-gray-800" id="abcCountC">-</span>
+                                <span class="text-sm text-gray-700">ürün</span>
+                            </div>
+                            <div class="text-sm text-gray-700">Ciro Payı: <span id="abcShareC">-</span>%</div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-hidden rounded-xl border border-gray-200 shadow-sm bg-white">
+                        <table class="min-w-full text-left text-sm text-gray-700">
+                            <thead class="bg-gray-100 text-gray-700 text-xs uppercase tracking-wide">
+                                <tr>
+                                    <th class="px-4 py-3">Ürün Adı</th>
+                                    <th class="px-4 py-3">Toplam Satış Tutarı</th>
+                                    <th class="px-4 py-3">Ciro Payı (%)</th>
+                                    <th class="px-4 py-3">Sınıfı</th>
+                                </tr>
+                            </thead>
+                            <tbody id="abcTableBody"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const res = await fetch(`/api/reports/summary?ts=${Date.now()}`, { cache: 'no-store' });
+    const data = await res.json();
+
+    if (data && data.kpis) {
+        document.getElementById('stokRiskliAdet').innerText = data.kpis.stokRiskliAdet ?? '-';
+    }
+
+    // Stok risk tablosu
+    const stokRiskBody = document.getElementById('stokRiskTableBody');
+    if (stokRiskBody && Array.isArray(data.stokRiskliUrunler)) {
+        stokRiskBody.innerHTML = '';
+        data.stokRiskliUrunler.forEach((u) => {
+            const tr = document.createElement('tr');
+            const omur = u.tahmini_stok_omru;
+            if (omur != null && Number(omur) <= 3) tr.className = 'row-critical';
+
+            const tdUrun = document.createElement('td');
+            tdUrun.textContent = u.urun_adi;
+            tr.appendChild(tdUrun);
+
+            const tdMevcut = document.createElement('td');
+            tdMevcut.textContent = Number(u.mevcut_stok || 0);
+            tr.appendChild(tdMevcut);
+
+            const tdAylik = document.createElement('td');
+            tdAylik.textContent = Number(u.aylik_ortalama || 0).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            tr.appendChild(tdAylik);
+
+            const tdOmur = document.createElement('td');
+            tdOmur.textContent = (omur != null) ? Number(omur).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '-';
+            tr.appendChild(tdOmur);
+
+            stokRiskBody.appendChild(tr);
+        });
+    }
+
+    // Satış tahmin grafiği
+    if (typeof Chart !== 'undefined' && data.satisTahmin) {
+        const el = document.getElementById('satisTahminChart');
+        if (el) {
+            const labels = data.satisTahmin.labels || [];
+            const values = (data.satisTahmin.data || []).map(v => Number(v || 0));
+
+            const forecastColor = '#e0565b';
+
+            new Chart(el.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ciro (₺)',
+                        data: values,
+                        tension: 0.3,
+                        fill: false,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 5,
+                        borderColor: forecastColor,
+                        backgroundColor: forecastColor,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: forecastColor,
+                        pointBorderColor: forecastColor
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '2026 İlk Yarı Satış Tahmini (Ocak - Haziran)',
+                            padding: { top: 10, bottom: 10 },
+                            font: { size: 14, weight: 'bold' },
+                            color: '#111827'
+                        },
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => ' ' + Number(c.parsed.y || 0).toLocaleString('tr-TR') + ' ₺'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { callback: (v) => Number(v).toLocaleString('tr-TR') }
+                        }
+                    }
+                }
+            });
+        }
+
+        const trendYuzde = Number(data.satisTahmin.trendYuzde || 0);
+        const trendYonu = data.satisTahmin.trendYonu || '';
+        const ozet = document.getElementById('tahminOzet');
+        if (ozet) {
+            ozet.innerHTML = `2023-2025 verilerine dayalı trend analizine göre, 2026'nın ilk 6 ayında satışların yaklaşık <strong>%${trendYuzde.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}</strong> ${trendYonu} bekleniyor`;
+        }
+    }
+
+    // ABC bölümü
+    if (typeof Chart !== 'undefined' && data.abc) {
+        const shares = data.abc.groupShares || { A: 0, B: 0, C: 0 };
+        const counts = data.abc.groupCounts || { A: 0, B: 0, C: 0 };
+
+        const countA = document.getElementById('abcCountA');
+        const countB = document.getElementById('abcCountB');
+        const countC = document.getElementById('abcCountC');
+        const shareA = document.getElementById('abcShareA');
+        const shareB = document.getElementById('abcShareB');
+        const shareC = document.getElementById('abcShareC');
+        if (countA) countA.innerText = counts.A ?? 0;
+        if (countB) countB.innerText = counts.B ?? 0;
+        if (countC) countC.innerText = counts.C ?? 0;
+        if (shareA) shareA.innerText = Number(shares.A ?? 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+        if (shareB) shareB.innerText = Number(shares.B ?? 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+        if (shareC) shareC.innerText = Number(shares.C ?? 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 });
+
+        const abcCtx = document.getElementById('abcChart');
+        if (abcCtx) {
+            new Chart(abcCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['A Grubu', 'B Grubu', 'C Grubu'],
+                    datasets: [{
+                        data: [Number(shares.A || 0), Number(shares.B || 0), Number(shares.C || 0)],
+                        backgroundColor: ['#22c55e', '#3b82f6', '#9ca3af'],
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const group = label.charAt(0);
+                                    const count = counts[group] || 0;
+                                    return [
+                                        `${label}: ${Number(value).toFixed(1)}%`,
+                                        `Ürün Sayısı: ${count}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    animation: { animateScale: true, animateRotate: true }
+                }
+            });
+        }
+
+        const abcTableBody = document.getElementById('abcTableBody');
+        if (abcTableBody && Array.isArray(data.abc.data)) {
+            abcTableBody.innerHTML = '';
+            if (data.abc.data.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.className = 'px-4 py-4 text-center text-gray-500';
+                td.textContent = 'Veri bulunamadı.';
+                tr.appendChild(td);
+                abcTableBody.appendChild(tr);
+            } else {
+                const badgeClasses = {
+                    A: 'bg-green-100 text-green-800 border border-green-200',
+                    B: 'bg-blue-100 text-blue-800 border border-blue-200',
+                    C: 'bg-gray-100 text-gray-800 border border-gray-200'
+                };
+
+                data.abc.data.forEach((row) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-t border-gray-100 hover:bg-gray-50 transition';
+
+                    const tdU = document.createElement('td');
+                    tdU.className = 'px-4 py-3 font-medium text-gray-800';
+                    tdU.textContent = row.urun_adi;
+                    tr.appendChild(tdU);
+
+                    const tdC = document.createElement('td');
+                    tdC.className = 'px-4 py-3';
+                    tdC.textContent = Number(row.toplam_ciro || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+                    tr.appendChild(tdC);
+
+                    const tdP = document.createElement('td');
+                    tdP.className = 'px-4 py-3';
+                    tdP.textContent = Number(row.pay || 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 }) + '%';
+                    tr.appendChild(tdP);
+
+                    const tdS = document.createElement('td');
+                    tdS.className = 'px-4 py-3';
+                    const span = document.createElement('span');
+                    span.className = `text-xs font-semibold px-3 py-1 rounded-full ${badgeClasses[row.sinif] || badgeClasses.C}`;
+                    span.textContent = row.sinif;
+                    tdS.appendChild(span);
+                    tr.appendChild(tdS);
+
+                    abcTableBody.appendChild(tr);
+                });
+            }
+        }
+
+        const abcOneri = document.getElementById('abcOneri');
+        if (abcOneri) {
+            abcOneri.innerText = `Öneri: A Grubu ürünler cironuzun %${Number(shares.A || 0).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}'ini oluşturuyor. Bu ürünlerde asla stoksuz kalmayın!`;
+        }
+    }
+});
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>
