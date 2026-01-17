@@ -55,4 +55,4 @@ Proje aşağıdaki RESTful servisleri sunmaktadır:
 
 ## 4. Veritabanı Şeması
 
-Projenin veritabanı yapısı; ürünler, kategoriler, müşteriler ve satış geçmişi tablolarından oluşmaktadır. Tablo ilişkilerini gösteren ER diyagramı proje dosyaları arasında "melodi_market_diyagram.png" adıyla mevcuttur.
+Projenin veritabanı yapısı; urunler, kategoriler, musteriler, satis_gecmisi, kds_senaryolari, tedarikciler, maliyet_gecmisi, risk_uyarilari tablolarından oluşmaktadır. Tablo ilişkilerini gösteren ER diyagramı proje dosyaları arasında "melodi_market_diyagram.png" adıyla mevcuttur.
