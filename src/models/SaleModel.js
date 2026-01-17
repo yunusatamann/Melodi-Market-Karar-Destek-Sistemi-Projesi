@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 class SaleModel {
-  // Yeni satış oluştur (transaction içinde)
   static async create(connection, urunId, musteriId, adet, satisFiyati) {
     const [result] = await connection.query(
       'INSERT INTO satis_gecmisi (urun_id, musteri_id, adet, satis_fiyati, satis_tarihi) VALUES (?, ?, ?, ?, NOW())',
@@ -10,7 +9,6 @@ class SaleModel {
     return result;
   }
 
-  // Son satışları getir
   static async getRecentSales(limit = 50) {
     const [rows] = await pool.query(
       `SELECT s.*, u.urun_adi, m.ad_soyad
@@ -24,7 +22,6 @@ class SaleModel {
     return rows;
   }
 
-  // Aylık satış trendini getir
   static async getMonthlyTrend(months = 12) {
     const [rows] = await pool.query(
       `SELECT 
@@ -40,7 +37,6 @@ class SaleModel {
     return rows;
   }
 
-  // Kategori bazında ciro getir
   static async getCategoryRevenue() {
     const [rows] = await pool.query(
       `SELECT k.kategori_adi, SUM(s.adet * s.satis_fiyati) AS ciro
@@ -53,7 +49,6 @@ class SaleModel {
     return rows;
   }
 
-  // Sezonluk satış verilerini getir
   static async getSeasonalData() {
     const [rows] = await pool.query(
       `SELECT 
@@ -68,7 +63,6 @@ class SaleModel {
     return rows;
   }
 
-  // Yıl ve ay bazında performans verilerini getir
   static async getPerformanceByYearMonth(year, month = 0) {
     const [rows] = await pool.query(
       `SELECT 
@@ -83,7 +77,6 @@ class SaleModel {
     return rows[0] || { totalCiro: 0, totalKar: 0 };
   }
 
-  // Kategori bazında kar getir
   static async getCategoryProfit(year, month = 0) {
     const [rows] = await pool.query(
       `SELECT
@@ -101,7 +94,6 @@ class SaleModel {
     return rows;
   }
 
-  // Yıl ve ay bazında detaylı performans
   static async getDetailedPerformance(years) {
     const [rows] = await pool.query(
       `SELECT 
@@ -118,7 +110,6 @@ class SaleModel {
     return rows;
   }
 
-  // Aylık ciro verilerini getir (tahmin için)
   static async getMonthlyRevenueForForecast() {
     const [rows] = await pool.query(
       `SELECT
@@ -132,7 +123,6 @@ class SaleModel {
     return rows;
   }
 
-  // ABC analizi için ürün ciro verilerini getir
   static async getProductRevenueForABC() {
     const [rows] = await pool.query(
       `SELECT 
@@ -147,7 +137,6 @@ class SaleModel {
     return rows;
   }
 
-  // Stok risk analizi için satış verilerini getir
   static async getSalesForStockRisk() {
     // Bu metod satış verilerini stok risk analizi için kullanılır
     // İlgili sorgu ReportModel'de olacak
@@ -156,4 +145,5 @@ class SaleModel {
 }
 
 module.exports = SaleModel;
+
 
