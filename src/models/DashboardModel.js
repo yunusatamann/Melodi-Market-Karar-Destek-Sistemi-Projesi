@@ -2,7 +2,6 @@ const ProductModel = require('./ProductModel');
 const SaleModel = require('./SaleModel');
 
 class DashboardModel {
-  // Dashboard özet verilerini getir
   static async getSummary() {
     const toplamUrun = await ProductModel.getCount();
     const kritikStok = await ProductModel.getCriticalStockCount();
@@ -36,4 +35,5 @@ class DashboardModel {
 }
 
 module.exports = DashboardModel;
+
 
