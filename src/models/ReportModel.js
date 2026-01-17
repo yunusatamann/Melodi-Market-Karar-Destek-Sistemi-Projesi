@@ -2,7 +2,6 @@ const pool = require('../config/db');
 const SaleModel = require('./SaleModel');
 
 class ReportModel {
-  // Stok riskli ürünleri getir
   static async getStockRiskProducts() {
     const [rows] = await pool.query(
       `SELECT u.urun_id, u.urun_adi, u.mevcut_stok,
@@ -20,16 +19,15 @@ class ReportModel {
     return rows;
   }
 
-  // ABC analizi verilerini getir
   static async getABCData() {
     return await SaleModel.getProductRevenueForABC();
   }
 
-  // Satış tahmin verilerini getir
   static async getForecastData() {
     return await SaleModel.getMonthlyRevenueForForecast();
   }
 }
 
 module.exports = ReportModel;
+
 
