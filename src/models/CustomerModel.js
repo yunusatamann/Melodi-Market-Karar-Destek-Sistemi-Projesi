@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 class CustomerModel {
-  // Tüm müşterileri satış bilgileriyle getir
   static async getAllWithSales() {
     const [rows] = await pool.query(
       `SELECT 
@@ -17,7 +16,6 @@ class CustomerModel {
     return rows;
   }
 
-  // Gelecek ayı getir
   static async getNextMonth() {
     const [[{ ay }]] = await pool.query(
       "SELECT (CASE WHEN MONTH(CURDATE()) = 12 THEN 1 ELSE MONTH(CURDATE()) + 1 END) as ay"
@@ -27,4 +25,5 @@ class CustomerModel {
 }
 
 module.exports = CustomerModel;
+
 
