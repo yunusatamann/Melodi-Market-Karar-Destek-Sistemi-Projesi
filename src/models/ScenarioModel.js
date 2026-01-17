@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 class ScenarioModel {
-  // Tüm senaryoları getir
   static async getAll() {
     const [rows] = await pool.query(
       `SELECT s.*, u.urun_adi
@@ -12,7 +11,6 @@ class ScenarioModel {
     return rows;
   }
 
-  // Yeni senaryo oluştur
   static async create(urunId, tahminiKur, planlananAlimAdeti, hesaplananKar, hesaplananStokOmru, aciklama) {
     const [result] = await pool.query(
       `INSERT INTO kds_senaryolari (urun_id, tahmini_kur, planlanan_alim_adeti, hesaplanan_kar, hesaplanan_stok_omru, aciklama)
@@ -24,4 +22,5 @@ class ScenarioModel {
 }
 
 module.exports = ScenarioModel;
+
 
