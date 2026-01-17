@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 class ProductModel {
-  // Tüm ürünleri getir
   static async getAll() {
     const [rows] = await pool.query(
       `SELECT u.*, k.kategori_adi, t.firma_adi
@@ -13,13 +12,11 @@ class ProductModel {
     return rows;
   }
 
-  // Ürün sayısını getir
   static async getCount() {
     const [[{ toplam }]] = await pool.query('SELECT COUNT(*) AS toplam FROM urunler');
     return toplam;
   }
 
-  // Kritik stok sayısını getir
   static async getCriticalStockCount() {
     const [[{ kritik }]] = await pool.query(
       'SELECT COUNT(*) AS kritik FROM urunler WHERE mevcut_stok <= min_stok_seviyesi'
@@ -27,13 +24,11 @@ class ProductModel {
     return kritik;
   }
 
-  // ID'ye göre ürün getir
   static async getById(urunId) {
     const [[row]] = await pool.query('SELECT * FROM urunler WHERE urun_id = ?', [urunId]);
     return row;
   }
 
-  // ID'ye göre ürün getir (FOR UPDATE - transaction için)
   static async getByIdForUpdate(connection, urunId) {
     const [rows] = await connection.query(
       'SELECT stok_miktari, satis_fiyati, urun_adi FROM urunler WHERE urun_id = ? FOR UPDATE',
@@ -42,7 +37,6 @@ class ProductModel {
     return rows[0];
   }
 
-  // Kategori dağılımını getir
   static async getCategoryDistribution() {
     const [rows] = await pool.query(
       `SELECT k.kategori_adi, COUNT(u.urun_id) as urun_sayisi
@@ -55,7 +49,6 @@ class ProductModel {
     return rows;
   }
 
-  // Düşük kar marjlı ürünleri getir
   static async getLowMarginProducts() {
     const [rows] = await pool.query(
       `SELECT urun_adi, birim_maliyet, satis_fiyati,
@@ -73,7 +66,6 @@ class ProductModel {
     return rows;
   }
 
-  // Stok grafik verilerini getir
   static async getStockChartData() {
     const [rows] = await pool.query(
       `SELECT 
@@ -97,7 +89,6 @@ class ProductModel {
     return rows;
   }
 
-  // Ürün güncelle
   static async update(urunId, stokMiktari, satisFiyati, urunAdi) {
     const [result] = await pool.query(
       'UPDATE urunler SET stok_miktari = ?, satis_fiyati = ?, urun_adi = ? WHERE urun_id = ?',
@@ -106,7 +97,6 @@ class ProductModel {
     return result;
   }
 
-  // Stok miktarını güncelle (transaction için)
   static async updateStock(connection, urunId, adet) {
     await connection.query(
       'UPDATE urunler SET stok_miktari = stok_miktari - ? WHERE urun_id = ?',
@@ -114,7 +104,6 @@ class ProductModel {
     );
   }
 
-  // Ürün sil
   static async delete(urunId) {
     const [result] = await pool.query('DELETE FROM urunler WHERE urun_id = ?', [urunId]);
     return result;
@@ -122,4 +111,5 @@ class ProductModel {
 }
 
 module.exports = ProductModel;
+
 
